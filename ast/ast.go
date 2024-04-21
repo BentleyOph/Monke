@@ -3,7 +3,7 @@ package ast
 import "github.com/BentleyOph/monke/token"
 
 type Node interface {
-	TokenLiteral() string
+	TokenLiteral() string // 
 }
 
 type Statement interface {
@@ -11,7 +11,7 @@ type Statement interface {
 	statementNode()
 }
 
-type Expression interface {
+type Expression interface { 
 	Node
 	expressionNode()
 }
@@ -44,7 +44,7 @@ func (ls *LetStatement) TokenLiteral() string {
 
 type Identifier struct {
 	Token token.Token // token.IDENT
-	Value string
+	Value string 
 }
 
 func (i *Identifier) expressionNode() {}
