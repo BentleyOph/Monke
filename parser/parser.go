@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/BentleyOph/monke/ast"
 	"github.com/BentleyOph/monke/lexer"
@@ -47,6 +48,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken()
 	p.prefixParseFns = make (map[token.TokenType]prefixParseFn) //initialize the map
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT,p.parseIntegerLiteral)
 	return p
 }
 
@@ -138,8 +140,8 @@ func (p *Parser)ParseReturnStatement() *ast.ReturnStatement{
 	return stmt
 }
 
-
-func (p *Parser) registerPrefix (tokenType token.TokenType, fn prefixParseFn){
+//register a prefix parse function for a token type
+func (p *Parser) registerPrefix (tokenType token.TokenType, fn prefixParseFn){ 
 	p.prefixParseFns[tokenType] = fn
 }
 
@@ -158,10 +160,25 @@ func(p *Parser) parseExpressionStatement() *ast.ExpressionStatement{
 	return stmt
 }
 func (p *Parser) parseExpression(precedence int) ast.Expression{
-	prefix := p.prefixParseFns[p.curToken.Type]
+	prefix := p.prefixParseFns[p.curToken.Type] // check if a prefix parse function exists for the current token type
 	if prefix == nil {
 		return nil  //no prefix parse function found
 	}
 	leftExp := prefix()
 	return leftExp
+}
+
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+	
+	value, err := strconv.ParseInt(p.curToken.Literal,0,64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer",p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil 
+	}
+	lit.Value = value
+	return lit 
+
 }
