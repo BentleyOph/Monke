@@ -6,7 +6,7 @@ import (
 )
 
 type Node interface {
-	TokenLiteral() string // 
+	TokenLiteral() string 
 	String () string
 }
 
@@ -129,4 +129,65 @@ func (il *IntegerLiteral) TokenLiteral() string {
 }
 func (il *IntegerLiteral) String() string {
 	return il.Token.Literal
+}
+
+
+
+type PrefixExpression struct {
+	Token token.Token 
+	Operator string
+	Right Expression
+}
+
+func (pe *PrefixExpression) expressionNode(){}
+func (pe *PrefixExpression) TokenLiteral() string{
+	return pe.Token.Literal
+}
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+
+}
+
+
+
+
+type InfixExpression struct{
+	Token token.Token // The operator token, e.g. '+'
+	Left Expression
+	Operator string
+	Right Expression
+}
+func (oe *InfixExpression) expressionNode(){}
+func (oe *InfixExpression)TokenLiteral() string{
+	return oe.Token.Literal
+}
+func (oe *InfixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(oe.Left.String()) // String() will recursively call the String() method of the left expression
+	out.WriteString(" " + oe.Operator + " ") // print the operator and a space
+	out.WriteString(oe.Right.String()) // recursively call the String() method of the right expression
+	out.WriteString(")")
+	return out.String()
+}
+
+
+
+type Boolean struct {
+	Token token.Token
+	Value bool 
+}
+func (b *Boolean) expressionNode(){}
+func(b *Boolean) TokenLiteral() string{
+	return b.Token.Literal
+}
+func (b *Boolean) String() string {
+	return b.Token.Literal
 }
