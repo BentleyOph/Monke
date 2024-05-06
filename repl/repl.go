@@ -3,6 +3,7 @@ package repl
 import (
 	"bufio"
 	"fmt"
+	"github.com/BentleyOph/monke/evaluator"
 	"github.com/BentleyOph/monke/parser"
 	"io"
 
@@ -28,9 +29,11 @@ func Start(in io.Reader, out io.Writer) {
 			printParserErrors(out, p.Errors())
 			continue
 		}
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
-
+		evaluated := evaluator.Eval(program) // evaluate the program
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
 	}
 
 }
