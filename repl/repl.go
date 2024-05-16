@@ -3,9 +3,11 @@ package repl
 import (
 	"bufio"
 	"fmt"
-	"github.com/BentleyOph/monke/evaluator"
-	"github.com/BentleyOph/monke/parser"
 	"io"
+
+	"github.com/BentleyOph/monke/evaluator"
+	"github.com/BentleyOph/monke/object"
+	"github.com/BentleyOph/monke/parser"
 
 	"github.com/BentleyOph/monke/lexer"
 )
@@ -14,6 +16,7 @@ const PROMPT = ">>"
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in) // initialize scanner to read from input
+	env := object.NewEnvironment() // initialize environment 
 	for {
 		fmt.Printf(PROMPT)
 		scanned := scanner.Scan() // scan the input
@@ -29,7 +32,7 @@ func Start(in io.Reader, out io.Writer) {
 			printParserErrors(out, p.Errors())
 			continue
 		}
-		evaluated := evaluator.Eval(program) // evaluate the program
+		evaluated := evaluator.Eval(program,env) // evaluate the program
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")

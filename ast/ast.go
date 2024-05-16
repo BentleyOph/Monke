@@ -82,7 +82,7 @@ func (i *Identifier) String() string {
 }
 
 type ReturnStatement struct{
-	Token token.Token
+	Token token.Token // token.RETURN
 	ReturnValue Expression
 }
 
