@@ -700,7 +700,7 @@ func TestCallExpressionParameterParsing(t *testing.T) {
 }
 
 
-func TestStringLiteralExpressikon(t *testing.T){
+func TestStringLiteralExpression(t *testing.T){
 	input := `"hello world";`
 	l := lexer.New(input)
 	p := New(l)
