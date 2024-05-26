@@ -160,6 +160,8 @@ func evalInfixExpression(operator string, left object.Object, right object.Objec
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -231,23 +233,28 @@ func isError(obj object.Object) bool { // check if an object is an error object
 
 // evaluates an identifier node by looking up the identifier in the environment
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	val, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: " + node.Value)
+	if val,ok := env.Get(node.Value);ok {
+		return val 
 	}
-	return val
+	if bultin,ok := builtins[node.Value];ok{
+		return bultin
+	}
+	return newError("identifier not found: %s",node.Value)
 }
 
 
 // applyFunction takes a function object and a slice of arguments, evaluates the function's body in a new environment with the arguments bound to the function's parameters
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
-		return newError("not a function: %s", fn.Type())
+	switch fn := fn.(type){
+	case *object.Function:
+		extendedEnv := extendFunctionEnv(fn, args) // extend the function's environment with the arguments
+		evaluated := Eval(fn.Body, extendedEnv)// function's body is evaluated in the new environment
+		return unwrapReturnValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(args...)
+	default:
+		return newError("not a function: %s",fn.Type())
 	}
-	extendedEnv := extendFunctionEnv(function, args) // extend the function's environment with the arguments
-	evaluated := Eval(function.Body, extendedEnv)// function's body is evaluated in the new environment
-	return unwrapReturnValue(evaluated)
 }
 
 // extendFunctionEnv takes a function object and a slice of arguments and returns a new environment that extends the function's environment by binding the arguments to the function's parameters
@@ -280,4 +287,15 @@ func evalExpressions(exps []ast.Expression,env *object.Environment)[]object.Obje
 		result = append(result, evaluated)
 	}
 	return result 
+}
+
+
+func evalStringInfixExpression(operator string,left object.Object, right object.Object)object.Object{
+	if operator != "+"{
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+
+	return &object.String{Value: leftVal + rightVal}
 }
